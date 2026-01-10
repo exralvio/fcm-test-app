@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const userService = require('../services/userService');
 
 class UserController {
@@ -7,7 +8,7 @@ class UserController {
    */
   async createUser(req, res) {
     try {
-      const { name, email, phone, password, isActive } = req.body;
+      const { name, email, phone, password } = req.body;
 
       // Validate required fields
       if (!name || !email) {
@@ -17,12 +18,18 @@ class UserController {
         });
       }
 
+      // Hash password with salt before saving
+      let hashedPassword = null;
+      if (password) {
+        const saltRounds = 10;
+        hashedPassword = await bcrypt.hash(password, saltRounds);
+      }
+
       const user = await userService.createUser({
         name,
         email,
         phone,
-        password,
-        isActive
+        password: hashedPassword
       });
 
       return res.status(201).json({
