@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
+        model: 'users',
         key: 'id'
       },
       comment: 'User who owns this device'
@@ -88,7 +88,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Device',
-    tableName: 'Devices',
+    tableName: 'devices',
     indexes: [
       { fields: ['userId'] },
       { fields: ['deviceToken'], unique: true },

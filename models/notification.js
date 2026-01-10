@@ -52,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
+        model: 'users',
         key: 'id'
       },
       comment: 'User who should receive the notification'
@@ -61,7 +61,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'Devices',
+        model: 'devices',
         key: 'id'
       },
       comment: 'Reference to specific device (if sending to one device)'
@@ -146,7 +146,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Notification',
-    tableName: 'Notifications',
+    tableName: 'notifications',
     indexes: [
       { fields: ['userId'] },
       { fields: ['deviceId'] },

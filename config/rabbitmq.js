@@ -60,9 +60,7 @@ class RabbitMQConnection {
         durable: true
       });
       
-      await channel.bindQueue(queue, config.rabbitmq.exchange, '');
-      
-      console.log(`Queue '${queue}' asserted and bound`);
+      console.log(`Queue '${queue}' asserted`);
       return { channel, queue: queueResult.queue };
     } catch (error) {
       console.error('Error setting up queue:', error);
@@ -70,14 +68,52 @@ class RabbitMQConnection {
     }
   }
 
-  async publishMessage(routingKey, message, options = {}) {
+  async setupTopicExchange(exchangeName) {
     try {
-      const { channel } = await this.setupExchange();
+      const { channel } = await this.connect();
+      await channel.assertExchange(exchangeName, 'topic', {
+        durable: true
+      });
+      console.log(`Topic exchange '${exchangeName}' asserted`);
+      return channel;
+    } catch (error) {
+      console.error('Error setting up topic exchange:', error);
+      throw error;
+    }
+  }
+
+  async publishMessage(queueName, message, options = {}) {
+    try {
+      const { channel, queue } = await this.setupQueue(queueName);
+      const messageBuffer = Buffer.from(JSON.stringify(message));
+      
+      const published = channel.sendToQueue(queue, messageBuffer, {
+        persistent: true,
+        ...options
+      });
+
+      if (published) {
+        console.log(`Message published to queue '${queueName}'`);
+      } else {
+        console.warn('Message returned to queue (buffer full)');
+      }
+
+      return published;
+    } catch (error) {
+      console.error('Error publishing message to queue:', error);
+      throw error;
+    }
+  }
+
+  async publishToTopic(topic, message, options = {}) {
+    try {
+      const topicExchange = 'notification-topic-exchange';
+      const { channel } = await this.setupTopicExchange(topicExchange);
       const messageBuffer = Buffer.from(JSON.stringify(message));
       
       const published = channel.publish(
-        config.rabbitmq.exchange,
-        routingKey || '',
+        topicExchange,
+        topic,
         messageBuffer,
         {
           persistent: true,
@@ -86,14 +122,14 @@ class RabbitMQConnection {
       );
 
       if (published) {
-        console.log(`Message published to exchange '${config.rabbitmq.exchange}' with routing key '${routingKey || ''}'`);
+        console.log(`Message published to topic '${topic}' on exchange '${topicExchange}'`);
       } else {
-        console.warn('Message returned to queue (buffer full)');
+        console.warn('Message returned to exchange (buffer full)');
       }
 
       return published;
     } catch (error) {
-      console.error('Error publishing message:', error);
+      console.error('Error publishing to topic:', error);
       throw error;
     }
   }
@@ -112,7 +148,8 @@ class RabbitMQConnection {
             channel.ack(msg);
           } catch (error) {
             console.error('Error processing message:', error);
-            channel.nack(msg, false, false); // Reject and don't requeue
+            // Reject and don't requeue on error - message will be lost or use DLQ
+            channel.nack(msg, false, false);
           }
         }
       }, {
@@ -123,6 +160,44 @@ class RabbitMQConnection {
       console.log(`Consuming messages from queue '${queue}'`);
     } catch (error) {
       console.error('Error consuming queue:', error);
+      throw error;
+    }
+  }
+
+  async subscribeToTopic(topic, callback, options = {}) {
+    try {
+      const topicExchange = 'notification-topic-exchange';
+      const { channel } = await this.setupTopicExchange(topicExchange);
+      
+      // Create an exclusive queue for this consumer
+      const queueResult = await channel.assertQueue('', {
+        exclusive: true
+      });
+      
+      await channel.bindQueue(queueResult.queue, topicExchange, topic);
+      
+      await channel.prefetch(1);
+      
+      await channel.consume(queueResult.queue, async (msg) => {
+        if (msg) {
+          try {
+            const content = JSON.parse(msg.content.toString());
+            await callback(content, msg);
+            channel.ack(msg);
+          } catch (error) {
+            console.error('Error processing topic message:', error);
+            channel.nack(msg, false, false);
+          }
+        }
+      }, {
+        noAck: false,
+        ...options
+      });
+
+      console.log(`Subscribed to topic '${topic}' on exchange '${topicExchange}'`);
+      return queueResult.queue;
+    } catch (error) {
+      console.error('Error subscribing to topic:', error);
       throw error;
     }
   }
