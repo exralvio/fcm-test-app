@@ -15,9 +15,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Notification routes
+// Routes
 const notificationRoutes = require('./routes/notificationRoutes');
+const userRoutes = require('./routes/userRoutes');
+const deviceRoutes = require('./routes/deviceRoutes');
+
 app.use('/', notificationRoutes);
+app.use('/', userRoutes);
+app.use('/', deviceRoutes);
 
 // Initialize database connection
 const mysql = require('./config/mysql');
