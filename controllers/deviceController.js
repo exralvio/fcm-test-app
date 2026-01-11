@@ -1,4 +1,5 @@
 const deviceService = require('../services/deviceService');
+const firebase = require('../config/firebase');
 
 class DeviceController {
   /**
@@ -222,6 +223,43 @@ class DeviceController {
       return res.status(statusCode).json({
         success: false,
         error: error.message || 'Failed to get devices'
+      });
+    }
+  }
+
+  /**
+   * Generate Firebase custom authentication token
+   * POST /devices/firebase-token
+   */
+  async getFirebaseToken(req, res) {
+    try {
+      const { uid, claims } = req.body;
+
+      // Validate required fields
+      if (!uid) {
+        return res.status(400).json({
+          success: false,
+          error: 'uid is required'
+        });
+      }
+
+      // Generate custom token using Firebase Admin SDK
+      const customToken = await firebase.createCustomToken(uid, claims || {});
+
+      return res.status(200).json({
+        success: true,
+        message: 'Firebase custom token generated successfully',
+        data: {
+          token: customToken,
+          uid,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Error in getFirebaseToken controller:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to generate Firebase token'
       });
     }
   }
