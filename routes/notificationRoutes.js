@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
+const authenticate = require('../middleware/auth');
 
 /**
  * @swagger
@@ -9,6 +10,8 @@ const notificationController = require('../controllers/notificationController');
  *     summary: Create notification and queue for FCM
  *     description: Creates a notification record, adds it to FCM queue for processing, and sends via Firebase Cloud Messaging
  *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -17,7 +20,6 @@ const notificationController = require('../controllers/notificationController');
  *             type: object
  *             required:
  *               - message
- *               - userId
  *             properties:
  *               message:
  *                 type: string
@@ -27,10 +29,6 @@ const notificationController = require('../controllers/notificationController');
  *                 type: string
  *                 description: Notification title
  *                 example: New Message
- *               userId:
- *                 type: integer
- *                 description: User ID who should receive the notification
- *                 example: 1
  *               deviceId:
  *                 type: integer
  *                 description: Optional specific device ID (if not provided, uses first active device)
@@ -91,6 +89,19 @@ const notificationController = require('../controllers/notificationController');
  *                 error:
  *                   type: string
  *                   example: Message is required
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Authentication token is required
  *       404:
  *         description: User or device not found
  *         content:
@@ -105,7 +116,7 @@ const notificationController = require('../controllers/notificationController');
  *                   type: string
  *                   example: User with ID 1 not found
  */
-router.post('/create-notification', notificationController.createNotification.bind(notificationController));
+router.post('/create-notification', authenticate, notificationController.createNotification.bind(notificationController));
 
 /**
  * @swagger

@@ -8,7 +8,8 @@ class NotificationController {
    */
   async createNotification(req, res) {
     try {
-      const { message, title, userId, deviceId, data, notificationType } = req.body;
+      const userId = req.user.id;
+      const { message, title, deviceId, data, notificationType } = req.body;
 
       // Validate required fields
       if (!message) {
