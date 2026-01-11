@@ -65,9 +65,11 @@ app.get('/health', (req, res) => {
 // Routes
 const userRoutes = require('./routes/userRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 app.use('/', userRoutes);
 app.use('/', deviceRoutes);
+app.use('/', notificationRoutes);
 
 // Initialize database connection
 const mysql = require('./config/mysql');
