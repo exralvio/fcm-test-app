@@ -63,11 +63,9 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-const notificationRoutes = require('./routes/notificationRoutes');
 const userRoutes = require('./routes/userRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 
-app.use('/', notificationRoutes);
 app.use('/', userRoutes);
 app.use('/', deviceRoutes);
 
@@ -87,7 +85,6 @@ async function startServer() {
     // Start HTTP server
     app.listen(PORT, () => {
       console.log(`API Server is running on http://localhost:${PORT}`);
-      console.log(`API endpoint: POST http://localhost:${PORT}/create-notification`);
       console.log(`Swagger documentation: http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {

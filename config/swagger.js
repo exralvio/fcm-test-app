@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'Imbee Test App API',
       version: '1.0.0',
-      description: 'API documentation for Imbee Test App - FCM Notification System with Users, Devices, and Notifications management',
+      description: 'API documentation for Imbee Test App - FCM Notification System with Users and Devices management',
       contact: {
         name: 'API Support',
         email: 'support@example.com'
@@ -30,10 +30,6 @@ const options = {
       {
         name: 'Devices',
         description: 'Device management endpoints'
-      },
-      {
-        name: 'Notifications',
-        description: 'FCM notification endpoints'
       },
       {
         name: 'Health',

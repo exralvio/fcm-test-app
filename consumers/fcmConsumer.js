@@ -1,5 +1,4 @@
 const rabbitmq = require('../config/rabbitmq');
-const notificationService = require('../services/notificationService');
 
 class FcmConsumer {
   constructor() {
@@ -19,7 +18,7 @@ class FcmConsumer {
       console.log('Starting FCM consumer...');
 
       // Setup queue and start consuming
-      await rabbitmq.consumeQueue('fcm-queue', async (message) => {
+      await rabbitmq.consumeQueue('notification.fcm', async (message) => {
         await this.handleFcmMessage(message);
       });
 
@@ -38,11 +37,8 @@ class FcmConsumer {
   async handleFcmMessage(message) {
     try {
       console.log('Processing FCM message:', message);
-
-      // Process notification and send via FCM
-      await notificationService.processFcmNotification(message);
-
-      console.log('FCM message processed successfully:', message.notificationId);
+      // Notification processing removed - notifications table has been removed
+      console.log('FCM message received (processing disabled)');
     } catch (error) {
       console.error('Error handling FCM message:', error);
       // Message will be nacked (not acknowledged) and can be retried or moved to DLQ

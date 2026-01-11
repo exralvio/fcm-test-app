@@ -108,7 +108,7 @@ class RabbitMQConnection {
   async publishToTopic(topic, message, options = {}) {
     try {
       const topicExchange = 'notification-topic-exchange';
-      const { channel } = await this.setupTopicExchange(topicExchange);
+      const channel = await this.setupTopicExchange(topicExchange);
       const messageBuffer = Buffer.from(JSON.stringify(message));
       
       const published = channel.publish(
@@ -167,7 +167,7 @@ class RabbitMQConnection {
   async subscribeToTopic(topic, callback, options = {}) {
     try {
       const topicExchange = 'notification-topic-exchange';
-      const { channel } = await this.setupTopicExchange(topicExchange);
+      const channel = await this.setupTopicExchange(topicExchange);
       
       // Create an exclusive queue for this consumer
       const queueResult = await channel.assertQueue('', {
