@@ -154,6 +154,39 @@ class UserController {
       });
     }
   }
+
+  /**
+   * Login user
+   * POST /auth/login
+   */
+  async login(req, res) {
+    try {
+      const { email, password } = req.body;
+
+      // Validate required fields
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email and password are required'
+        });
+      }
+
+      const { token } = await userService.login(email, password);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        data: { token }
+      });
+    } catch (error) {
+      console.error('Error in login controller:', error);
+      const statusCode = error.message.includes('Invalid') || error.message.includes('inactive') || error.message.includes('not set') ? 401 : 500;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || 'Login failed'
+      });
+    }
+  }
 }
 
 module.exports = new UserController();

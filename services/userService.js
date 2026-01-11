@@ -1,3 +1,6 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config/config');
 const { User } = require('../models');
 
 class UserService {
@@ -179,6 +182,61 @@ class UserService {
       return true;
     } catch (error) {
       console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Authenticate user by email and password
+   * @param {string} email - User email
+   * @param {string} password - User password (plain text)
+   * @returns {Promise<Object>} JWT token
+   */
+  async login(email, password) {
+    try {
+      // Find user by email with password included
+      const user = await User.scope('withPassword').findOne({ where: { email } });
+      
+      if (!user) {
+        throw new Error('Invalid email or password');
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        throw new Error('User account is inactive');
+      }
+
+      // Check if user has a password set
+      if (!user.password) {
+        throw new Error('Password not set for this user');
+      }
+
+      // Verify password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      
+      if (!isPasswordValid) {
+        throw new Error('Invalid email or password');
+      }
+
+      // Update lastLoginAt
+      user.lastLoginAt = new Date();
+      await user.save();
+
+      // Generate JWT token
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email
+        },
+        config.jwt.secret,
+        {
+          expiresIn: config.jwt.expiresIn
+        }
+      );
+
+      return { token };
+    } catch (error) {
+      console.error('Error during login:', error);
       throw error;
     }
   }
