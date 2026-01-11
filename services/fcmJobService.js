@@ -24,7 +24,7 @@ class FcmJobService {
         deviceId,
         identifier: identifier || null,
         messageId: messageId || null,
-        deliverAt: deliverAt || new Date()
+        deliverAt: deliverAt || new Date(),
       });
 
       return fcmJob;
@@ -33,65 +33,6 @@ class FcmJobService {
       throw error;
     }
   }
-
-  /**
-   * Get FCM job by ID
-   * @param {number} jobId - FCM job ID
-   * @returns {Promise<Object|null>} FCM job or null
-   */
-  async getFcmJobById(jobId) {
-    try {
-      const fcmJob = await FcmJob.findByPk(jobId);
-      return fcmJob;
-    } catch (error) {
-      console.error('Error getting FCM job:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get FCM jobs by device ID
-   * @param {number} deviceId - Device ID
-   * @param {Object} options - Query options (limit, offset, order)
-   * @returns {Promise<Array>} Array of FCM jobs
-   */
-  async getFcmJobsByDeviceId(deviceId, options = {}) {
-    try {
-      const { limit, offset, order } = options;
-      
-      const queryOptions = {
-        where: { deviceId },
-        order: order || [['createdAt', 'DESC']]
-      };
-
-      if (limit) queryOptions.limit = limit;
-      if (offset) queryOptions.offset = offset;
-
-      const fcmJobs = await FcmJob.findAll(queryOptions);
-      return fcmJobs;
-    } catch (error) {
-      console.error('Error getting FCM jobs by device ID:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get FCM job by message ID
-   * @param {string} messageId - FCM message ID
-   * @returns {Promise<Object|null>} FCM job or null
-   */
-  async getFcmJobByMessageId(messageId) {
-    try {
-      const fcmJob = await FcmJob.findOne({
-        where: { messageId }
-      });
-      return fcmJob;
-    } catch (error) {
-      console.error('Error getting FCM job by message ID:', error);
-      throw error;
-    }
-  }
 }
 
 module.exports = new FcmJobService();
-

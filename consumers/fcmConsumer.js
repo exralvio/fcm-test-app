@@ -55,30 +55,28 @@ class FcmConsumer {
         body: message.body,
         data: message.data || {},
         priority: message.priority || 'normal',
-        deviceId: message.deviceId
+        deviceId: message.deviceId,
       };
 
       // Send notification via FCM service
       const result = await fcmService.sendNotification(notificationData);
 
-
       // Insert FCM job record after successful delivery
       if (message.deviceId && result.messageId) {
-        try {
-          await fcmJobService.createFcmJob({
-            deviceId: message.deviceId,
-            identifier: message.identifier || null,
-            messageId: result.messageId,
-            deliverAt: new Date()
-          });
-          console.log('FCM job record created successfully:', {
-            deviceId: message.deviceId,
-            messageId: result.messageId
-          });
-        } catch (error) {
-          // Log but don't fail the notification send
-          console.error('Error creating FCM job record:', error);
-        }
+        const jobData = {
+          deviceId: message.deviceId,
+          identifier: message.identifier || null,
+          messageId: result.messageId,
+          deliverAt: new Date(),
+        };
+
+        // Create FCM job record
+        await this.handleFcmJobCreation(jobData);
+
+        // Publish message to 'notification.done' topic
+        await this.publishNotificationDone(jobData);
+      } else {
+        console.error('Failed to send FCM notification:', result);
       }
 
       return result;
@@ -86,6 +84,41 @@ class FcmConsumer {
       console.error('Error handling FCM message:', error);
       // Message will be nacked (not acknowledged) and can be retried or moved to DLQ
       throw error;
+    }
+  }
+
+  /**
+   * Handle FCM job creation and publish to notification.done topic
+   * @param {Object} message - Original message from queue
+   * @param {Object} result - FCM send result
+   */
+  async handleFcmJobCreation(jobData) {
+    try {
+      const fcmJob = await fcmJobService.createFcmJob(jobData);
+      console.log('FCM job record created successfully:', fcmJob);
+    } catch (error) {
+      // Log but don't fail the notification send
+      console.error('Error creating FCM job record:', error);
+    }
+  }
+
+  /**
+   * Publish message to 'notification.done' topic with fcm_jobs data
+   * @param {Object} jobData - FCM job data
+   */
+  async publishNotificationDone(jobData) {
+    try {
+      const publishData = {
+        deviceId: jobData.deviceId,
+        identifier: jobData.identifier,
+        messageId: jobData.messageId,
+        deliverAt: jobData.deliverAt ? jobData.deliverAt.toISOString() : null,
+      };
+      await rabbitmq.publishToTopic('notification.done', publishData);
+      console.log('Message published to notification.done topic:', publishData);
+    } catch (error) {
+      // Log but don't fail the process
+      console.error('Error publishing to notification.done topic:', error);
     }
   }
 
@@ -99,4 +132,3 @@ class FcmConsumer {
 }
 
 module.exports = new FcmConsumer();
-
