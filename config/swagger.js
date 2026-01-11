@@ -32,10 +32,6 @@ const options = {
         description: 'Device management endpoints'
       },
       {
-        name: 'Health',
-        description: 'Health check endpoints'
-      },
-      {
         name: 'Auth',
         description: 'Authentication endpoints'
       }
