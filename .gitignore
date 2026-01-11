@@ -7,7 +7,7 @@ node_modules/
 .env.*.local
 
 # Firebase credentials
-config/firebase-service-account.json
+config/firebase/
 
 # Logs
 logs
