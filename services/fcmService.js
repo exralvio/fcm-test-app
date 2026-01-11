@@ -25,10 +25,12 @@ class FcmService {
         throw new Error('Title and body are required');
       }
 
-      // Prepare notification object
+      // Prepare notification object, include priority
       const notification = {
         title,
-        body
+        body,
+        android: { priority }, // For Android priority setting
+        apns: { headers: { 'apns-priority': priority === 'high' ? '10' : '5' } } // For iOS priority setting
       };
 
       // Send notification via Firebase
@@ -52,6 +54,7 @@ class FcmService {
         success: true,
         messageId: response,
         deviceToken,
+        priority,
         timestamp: new Date().toISOString()
       };
     } catch (error) {

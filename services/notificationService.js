@@ -1,5 +1,6 @@
 const rabbitmq = require('../config/rabbitmq');
 const { Device } = require('../models');
+const { generateIdentifier } = require('../utils/functions');
 
 class NotificationService {
   /**
@@ -26,17 +27,16 @@ class NotificationService {
       // Publish notification for each device
       const results = [];
       for (const device of devices) {
-        const message = {
+        const identifier = generateIdentifier();
+        await rabbitmq.publishMessage('notification.fcm', {
+          identifier,
           deviceId: device.id,
           deviceToken: device.deviceToken,
           title,
           body,
           data: data || {},
-          priority: priority || 'normal',
-          timestamp: new Date().toISOString()
-        };
-
-        await rabbitmq.publishMessage('notification.fcm', message);
+          priority: priority || 'normal'
+        });
         results.push({
           deviceId: device.id,
           deviceToken: device.deviceToken,
