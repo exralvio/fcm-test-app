@@ -1,4 +1,4 @@
-const { FcmJob } = require('../models');
+const { FcmJob, Device } = require('../models');
 
 class FcmJobService {
   /**
@@ -30,6 +30,42 @@ class FcmJobService {
       return fcmJob;
     } catch (error) {
       console.error('Error creating FCM job:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all FCM jobs
+   * @param {Object} options - Query options
+   * @returns {Promise<Array>} FCM jobs list
+   */
+  async getAllFcmJobs(options = {}) {
+    try {
+      const { deviceId, includeDevice } = options;
+
+      const where = {};
+      if (deviceId) {
+        where.deviceId = deviceId;
+      }
+
+      const include = [];
+      if (includeDevice !== false) {
+        include.push({
+          model: Device,
+          as: 'device',
+          attributes: ['id', 'deviceToken', 'deviceId', 'platform', 'appVersion', 'osVersion', 'deviceModel']
+        });
+      }
+
+      const fcmJobs = await FcmJob.findAll({
+        where,
+        include: include.length > 0 ? include : undefined,
+        order: [['createdAt', 'DESC']]
+      });
+
+      return fcmJobs;
+    } catch (error) {
+      console.error('Error getting all FCM jobs:', error);
       throw error;
     }
   }

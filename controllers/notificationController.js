@@ -1,9 +1,10 @@
 const notificationService = require('../services/notificationService');
+const fcmJobService = require('../services/fcmJobService');
 
 class NotificationController {
   /**
    * Send FCM notification to all devices
-   * POST /notifications/all
+   * POST /send-notifications
    */
   async sendToAllDevices(req, res) {
     try {
@@ -35,6 +36,32 @@ class NotificationController {
       return res.status(statusCode).json({
         success: false,
         error: error.message || 'Failed to send notification to all devices'
+      });
+    }
+  }
+
+  /**
+   * Get all FCM jobs
+   * GET /fcm-jobs
+   */
+  async getAllFcmJobs(req, res) {
+    try {
+      const { deviceId, includeDevice } = req.query;
+
+      const result = await fcmJobService.getAllFcmJobs({
+        deviceId: deviceId ? parseInt(deviceId) : undefined,
+        includeDevice: includeDevice !== 'false'
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in getAllFcmJobs controller:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to get FCM jobs'
       });
     }
   }
