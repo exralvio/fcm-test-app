@@ -1,4 +1,5 @@
 const rabbitmq = require('../config/rabbitmq');
+const fcmService = require('../services/fcmService');
 
 class FcmConsumer {
   constructor() {
@@ -37,8 +38,35 @@ class FcmConsumer {
   async handleFcmMessage(message) {
     try {
       console.log('Processing FCM message:', message);
-      // Notification processing removed - notifications table has been removed
-      console.log('FCM message received (processing disabled)');
+
+      // Validate message structure
+      if (!message.deviceToken) {
+        throw new Error('Device token is missing from message');
+      }
+      if (!message.title || !message.body) {
+        throw new Error('Title and body are required in message');
+      }
+
+      // Prepare notification data
+      const notificationData = {
+        deviceToken: message.deviceToken,
+        title: message.title,
+        body: message.body,
+        data: message.data || {},
+        priority: message.priority || 'normal',
+        deviceId: message.deviceId
+      };
+
+      // Send notification via FCM service
+      const result = await fcmService.sendNotification(notificationData);
+
+      console.log('FCM notification sent successfully:', {
+        deviceToken: message.deviceToken,
+        deviceId: message.deviceId,
+        messageId: result.messageId
+      });
+
+      return result;
     } catch (error) {
       console.error('Error handling FCM message:', error);
       // Message will be nacked (not acknowledged) and can be retried or moved to DLQ
