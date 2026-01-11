@@ -44,30 +44,6 @@ class FirebaseConnection {
     return this.messaging;
   }
 
-  getAuth() {
-    if (!this.app) {
-      this.initialize();
-    }
-    return admin.auth();
-  }
-
-  /**
-   * Create a custom token for Firebase Authentication
-   * @param {string} uid - User ID for the custom token
-   * @param {Object} additionalClaims - Additional custom claims to include in the token
-   * @returns {Promise<string>} Custom token
-   */
-  async createCustomToken(uid, additionalClaims = {}) {
-    try {
-      const auth = this.getAuth();
-      const customToken = await auth.createCustomToken(uid, additionalClaims);
-      return customToken;
-    } catch (error) {
-      console.error('Error creating custom token:', error);
-      throw error;
-    }
-  }
-
   async sendNotification(deviceToken, notification, data = {}) {
     try {
       const messaging = this.getMessaging();
