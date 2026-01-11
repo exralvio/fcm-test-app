@@ -3,7 +3,7 @@ const { Device } = require('../models');
 
 class NotificationService {
   /**
-   * Send FCM notification to all active devices in the system
+   * Send FCM notification to all devices in the system
    * @param {Object} notificationData - Notification data
    * @returns {Promise<Object>} Published message details
    */
@@ -16,15 +16,11 @@ class NotificationService {
         throw new Error('Title and body are required');
       }
 
-      // Get all active devices
-      const devices = await Device.findAll({
-        where: {
-          isActive: true
-        }
-      });
+      // Get all devices
+      const devices = await Device.findAll();
 
       if (devices.length === 0) {
-        throw new Error('No active devices found in the system');
+        throw new Error('No devices found in the system');
       }
 
       // Publish notification for each device

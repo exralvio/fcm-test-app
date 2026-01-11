@@ -36,9 +36,6 @@ const deviceController = require('../controllers/deviceController');
  *               deviceModel:
  *                 type: string
  *                 example: Samsung Galaxy S21
- *               isActive:
- *                 type: boolean
- *                 default: true
  *     responses:
  *       201:
  *         description: Device created successfully
@@ -74,8 +71,6 @@ const deviceController = require('../controllers/deviceController');
  *                     deviceModel:
  *                       type: string
  *                       nullable: true
- *                     isActive:
- *                       type: boolean
  *                     createdAt:
  *                       type: string
  *                       format: date-time
@@ -111,11 +106,6 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *           type: string
  *           enum: [ios, android, web]
  *         description: Filter by platform
- *       - in: query
- *         name: isActive
- *         schema:
- *           type: boolean
- *         description: Filter by active status
  *       - in: query
  *         name: search
  *         schema:
@@ -162,9 +152,6 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *                         type: string
  *                         example: Samsung Galaxy S21
  *                         nullable: true
- *                       isActive:
- *                         type: boolean
- *                         example: true
  *                       lastActiveAt:
  *                         type: string
  *                         format: date-time
@@ -231,9 +218,6 @@ router.get('/devices', deviceController.getAllDevices.bind(deviceController));
  *                       type: string
  *                       example: Samsung Galaxy S21
  *                       nullable: true
- *                     isActive:
- *                       type: boolean
- *                       example: true
  *                     lastActiveAt:
  *                       type: string
  *                       format: date-time
@@ -293,8 +277,6 @@ router.get('/devices/:id', deviceController.getDeviceById.bind(deviceController)
  *                 type: string
  *               deviceModel:
  *                 type: string
- *               isActive:
- *                 type: boolean
  *     responses:
  *       200:
  *         description: Device updated successfully
@@ -330,8 +312,6 @@ router.get('/devices/:id', deviceController.getDeviceById.bind(deviceController)
  *                     deviceModel:
  *                       type: string
  *                       nullable: true
- *                     isActive:
- *                       type: boolean
  *                     lastActiveAt:
  *                       type: string
  *                       format: date-time

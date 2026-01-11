@@ -59,11 +59,6 @@ module.exports = (sequelize, DataTypes) => {
         len: [0, 255]
       }
     },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true
-    },
     lastActiveAt: {
       type: DataTypes.DATE,
       allowNull: true
@@ -74,7 +69,6 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'devices',
     indexes: [
       { fields: ['deviceToken'], unique: true },
-      { fields: ['isActive'] },
       { fields: ['platform'] }
     ]
   });

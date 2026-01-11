@@ -7,7 +7,7 @@ class DeviceController {
    */
   async createDevice(req, res) {
     try {
-      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel, isActive } = req.body;
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = req.body;
 
       // Validate required fields
       if (!deviceToken) {
@@ -23,8 +23,7 @@ class DeviceController {
         platform,
         appVersion,
         osVersion,
-        deviceModel,
-        isActive
+        deviceModel
       });
 
       return res.status(201).json({
@@ -48,11 +47,10 @@ class DeviceController {
    */
   async getAllDevices(req, res) {
     try {
-      const { platform, isActive, search } = req.query;
+      const { platform, search } = req.query;
 
       const result = await deviceService.getAllDevices({
         platform,
-        isActive,
         search
       });
 
@@ -100,7 +98,7 @@ class DeviceController {
   async updateDevice(req, res) {
     try {
       const { id } = req.params;
-      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel, isActive } = req.body;
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = req.body;
 
       const device = await deviceService.updateDevice(id, {
         deviceToken,
@@ -108,8 +106,7 @@ class DeviceController {
         platform,
         appVersion,
         osVersion,
-        deviceModel,
-        isActive
+        deviceModel
       });
 
       return res.status(200).json({

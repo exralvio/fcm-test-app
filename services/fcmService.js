@@ -58,19 +58,7 @@ class FcmService {
       // Handle FCM errors
       if (error.code === 'messaging/invalid-registration-token' ||
           error.code === 'messaging/registration-token-not-registered') {
-        // Token is invalid, mark device as inactive if deviceId is provided
-        if (notificationData.deviceId) {
-          try {
-            const device = await Device.findByPk(notificationData.deviceId);
-            if (device) {
-              device.isActive = false;
-              await device.save();
-              console.log(`Device ${notificationData.deviceId} marked as inactive due to invalid token`);
-            }
-          } catch (updateError) {
-            console.error('Error updating device status:', updateError);
-          }
-        }
+        // Token is invalid
         throw new Error(`Invalid device token: ${error.message}`);
       }
 

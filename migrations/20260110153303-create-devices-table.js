@@ -42,12 +42,6 @@ module.exports = {
         allowNull: true,
         comment: 'Device model (e.g., iPhone 13, Samsung Galaxy S21)'
       },
-      isActive: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-        comment: 'Whether this device is currently active'
-      },
       lastActiveAt: {
         type: Sequelize.DATE,
         allowNull: true,
@@ -69,9 +63,6 @@ module.exports = {
     await queryInterface.addIndex('devices', ['deviceToken'], {
       name: 'idx_devices_token',
       unique: true
-    });
-    await queryInterface.addIndex('devices', ['isActive'], {
-      name: 'idx_devices_active'
     });
     await queryInterface.addIndex('devices', ['platform'], {
       name: 'idx_devices_platform'

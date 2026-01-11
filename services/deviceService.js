@@ -20,7 +20,6 @@ class DeviceService {
         if (appVersion !== undefined) device.appVersion = appVersion;
         if (osVersion !== undefined) device.osVersion = osVersion;
         if (deviceModel !== undefined) device.deviceModel = deviceModel;
-        device.isActive = true;
         device.lastActiveAt = new Date();
         await device.save();
         return device;
@@ -33,7 +32,6 @@ class DeviceService {
           appVersion,
           osVersion,
           deviceModel,
-          isActive: true,
           lastActiveAt: new Date()
         });
         return device;
@@ -51,7 +49,7 @@ class DeviceService {
    */
   async createDevice(deviceData) {
     try {
-      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = deviceData;
 
       // Check if device token already exists
       const existingDevice = await Device.findOne({ where: { deviceToken } });
@@ -66,7 +64,6 @@ class DeviceService {
         appVersion,
         osVersion,
         deviceModel,
-        isActive: isActive !== undefined ? isActive : true,
         lastActiveAt: new Date()
       });
 
@@ -84,14 +81,11 @@ class DeviceService {
    */
   async getAllDevices(options = {}) {
     try {
-      const { platform, isActive, search } = options;
+      const { platform, search } = options;
 
       const where = {};
       if (platform) {
         where.platform = platform;
-      }
-      if (isActive !== undefined) {
-        where.isActive = isActive === 'true' || isActive === true;
       }
 
       if (search) {
@@ -148,7 +142,7 @@ class DeviceService {
         throw new Error(`Device with ID ${deviceId} not found`);
       }
 
-      const { deviceToken, deviceId: newDeviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
+      const { deviceToken, deviceId: newDeviceId, platform, appVersion, osVersion, deviceModel } = deviceData;
 
       // Check if device token is being changed and already exists
       if (deviceToken && deviceToken !== device.deviceToken) {
@@ -165,10 +159,6 @@ class DeviceService {
       if (appVersion !== undefined) device.appVersion = appVersion;
       if (osVersion !== undefined) device.osVersion = osVersion;
       if (deviceModel !== undefined) device.deviceModel = deviceModel;
-      if (isActive !== undefined) device.isActive = isActive;
-      if (isActive === true) {
-        device.lastActiveAt = new Date();
-      }
 
       await device.save();
 
