@@ -26,10 +26,6 @@ module.exports = {
     credentialPath: process.env.FIREBASE_CREDENTIAL_PATH || './config/firebase-service-account.json',
     projectId: process.env.FIREBASE_PROJECT_ID || '',
     databaseURL: process.env.FIREBASE_DATABASE_URL || ''
-  },
-  jwt: {
-    secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   }
 };
 
