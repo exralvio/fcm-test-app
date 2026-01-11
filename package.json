@@ -19,7 +19,7 @@
     "db:drop": "sequelize-cli db:drop"
   },
   "keywords": [],
-  "author": "",
+  "author": "Alvio Leegia",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.3",

@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: imbee-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: imbee_test
+      MYSQL_USER: imbee_user
+      MYSQL_PASSWORD: imbee_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - imbee-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: imbee-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: imbee_user
+      RABBITMQ_DEFAULT_PASS: imbee_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - imbee-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imbee-api
+    restart: unless-stopped
+    command: ["npm", "run", "start:api"]
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: imbee_user
+      MYSQL_PASSWORD: imbee_password
+      MYSQL_DATABASE: imbee_test
+      RABBITMQ_URL: amqp://imbee_user:imbee_password@rabbitmq:5672
+      RABBITMQ_EXCHANGE: imbee_exchange
+      RABBITMQ_QUEUE: imbee_queue
+      FIREBASE_CREDENTIAL_PATH: ./config/firebase-json/***REMOVED***-b46961602f80.json
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
+      - ./config/firebase-json:/app/config/firebase-json:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - imbee-network
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imbee-consumer
+    restart: unless-stopped
+    command: ["npm", "run", "start:consumer"]
+    environment:
+      NODE_ENV: production
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: imbee_user
+      MYSQL_PASSWORD: imbee_password
+      MYSQL_DATABASE: imbee_test
+      RABBITMQ_URL: amqp://imbee_user:imbee_password@rabbitmq:5672
+      RABBITMQ_EXCHANGE: imbee_exchange
+      RABBITMQ_QUEUE: imbee_queue
+      RUN_MIGRATIONS: "false"
+      FIREBASE_CREDENTIAL_PATH: ./config/firebase-json/***REMOVED***-b46961602f80.json
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-}
+    volumes:
+      - ./logs:/app/logs
+      - ./config/firebase-json:/app/config/firebase-json:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - imbee-network
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+
+networks:
+  imbee-network:
+    driver: bridge
+

@@ -94,8 +94,8 @@ class FcmConsumer {
    */
   async handleFcmJobCreation(jobData) {
     try {
-      const fcmJob = await fcmJobService.createFcmJob(jobData);
-      console.log('FCM job record created successfully:', fcmJob);
+      await fcmJobService.createFcmJob(jobData);
+      console.log('FCM job record created successfully.');
     } catch (error) {
       // Log but don't fail the notification send
       console.error('Error creating FCM job record:', error);
@@ -115,7 +115,7 @@ class FcmConsumer {
         deliverAt: jobData.deliverAt ? jobData.deliverAt.toISOString() : null,
       };
       await rabbitmq.publishToTopic('notification.done', publishData);
-      console.log('Message published to notification.done topic:', publishData);
+      console.log('Message published to notification.done topic.');
     } catch (error) {
       // Log but don't fail the process
       console.error('Error publishing to notification.done topic:', error);

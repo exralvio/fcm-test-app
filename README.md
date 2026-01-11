@@ -306,6 +306,148 @@ sudo systemctl start rabbitmq-server
 # Start RabbitMQ service from Services panel
 ```
 
+## Docker Setup (Recommended)
+
+### Prerequisites
+
+- Docker (v20.10 or higher)
+- Docker Compose (v2.0 or higher)
+- Firebase service account JSON file (place in `config/firebase-json/` directory)
+
+### Quick Start with Docker
+
+1. **Place Firebase credentials:**
+
+   Ensure your Firebase service account JSON file is in `config/firebase-json/` directory. The default filename expected is `***REMOVED***-b46961602f80.json`, or update the path in `docker-compose.yml`.
+
+2. **Set Firebase environment variables (optional):**
+
+   Create a `.env` file in the root directory (or export environment variables):
+   
+   ```env
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+   ```
+
+3. **Start all services with one command:**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+   This command will:
+   - Build the Node.js application images
+   - Start MySQL database
+   - Start RabbitMQ server
+   - Start API server
+   - Start Consumer service
+   - **Automatically run database migrations** before starting the services
+
+4. **View logs:**
+
+   ```bash
+   # View all logs
+   docker-compose logs -f
+
+   # View specific service logs
+   docker-compose logs -f api
+   docker-compose logs -f consumer
+   docker-compose logs -f mysql
+   docker-compose logs -f rabbitmq
+   ```
+
+5. **Access the services:**
+
+   - **API Server**: http://localhost:3000
+   - **Swagger Documentation**: http://localhost:3000/api-docs
+   - **RabbitMQ Management UI**: http://localhost:15672
+     - Username: `imbee_user`
+     - Password: `imbee_password`
+
+### Docker Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (WARNING: deletes database data)
+docker-compose down -v
+
+# Rebuild and restart services
+docker-compose up -d --build
+
+# View service status
+docker-compose ps
+
+# Execute command in running container
+docker-compose exec api npm run db:migrate:status
+docker-compose exec api sh
+
+# Run migrations manually (if needed)
+docker-compose exec api npm run db:migrate
+
+# View logs
+docker-compose logs -f [service-name]
+```
+
+### Docker Services
+
+The Docker setup includes:
+
+- **MySQL 8.0**: Database server (port 3306)
+  - Database: `imbee_test`
+  - User: `imbee_user`
+  - Password: `imbee_password`
+  - Root Password: `rootpassword`
+
+- **RabbitMQ 3.12**: Message queue server (ports 5672, 15672)
+  - User: `imbee_user`
+  - Password: `imbee_password`
+  - Management UI: http://localhost:15672
+
+- **API Service**: Express API server (port 3000)
+  - Runs database migrations on startup
+  - Automatically waits for MySQL and RabbitMQ to be ready
+
+- **Consumer Service**: FCM notification consumer
+  - Processes messages from RabbitMQ queue
+  - Automatically waits for MySQL and RabbitMQ to be ready
+
+### Environment Variables for Docker
+
+The Docker Compose file uses the following default values (can be overridden with `.env` file):
+
+```env
+# MySQL (internal to Docker network)
+MYSQL_HOST=mysql
+MYSQL_USER=imbee_user
+MYSQL_PASSWORD=imbee_password
+MYSQL_DATABASE=imbee_test
+
+# RabbitMQ (internal to Docker network)
+RABBITMQ_URL=amqp://imbee_user:imbee_password@rabbitmq:5672
+
+# Firebase (from your local .env file or environment)
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+```
+
+### Data Persistence
+
+Docker volumes are used to persist data:
+
+- `mysql_data`: MySQL database data
+- `rabbitmq_data`: RabbitMQ messages and configurations
+
+Data persists even when containers are stopped. To remove all data:
+
+```bash
+docker-compose down -v
+```
+
 ## Running the Application
 
 ### Development Mode
