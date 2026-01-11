@@ -4,110 +4,6 @@ const deviceController = require('../controllers/deviceController');
 
 /**
  * @swagger
- * /devices/register:
- *   post:
- *     summary: Register a device (updates if token exists)
- *     tags: [Devices]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - deviceToken
- *             properties:
- *               deviceToken:
- *                 type: string
- *                 example: fcm_token_here
- *               deviceId:
- *                 type: string
- *                 example: unique_device_uuid
- *               platform:
- *                 type: string
- *                 enum: [ios, android, web]
- *                 example: android
- *               appVersion:
- *                 type: string
- *                 example: 1.0.0
- *               osVersion:
- *                 type: string
- *                 example: 13.0
- *               deviceModel:
- *                 type: string
- *                 example: Samsung Galaxy S21
- *     responses:
- *       201:
- *         description: Device registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     deviceToken:
- *                       type: string
- *                       example: fcm_token_here
- *                     deviceId:
- *                       type: string
- *                       example: unique_device_uuid
- *                       nullable: true
- *                     platform:
- *                       type: string
- *                       enum: [ios, android, web]
- *                       example: android
- *                     appVersion:
- *                       type: string
- *                       example: 1.0.0
- *                       nullable: true
- *                     osVersion:
- *                       type: string
- *                       example: 13.0
- *                       nullable: true
- *                     deviceModel:
- *                       type: string
- *                       example: Samsung Galaxy S21
- *                       nullable: true
- *                     isActive:
- *                       type: boolean
- *                       example: true
- *                     lastActiveAt:
- *                       type: string
- *                       format: date-time
- *                       nullable: true
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: Validation error message
- */
-router.post('/devices/register', deviceController.registerDevice.bind(deviceController));
-
-/**
- * @swagger
  * /devices:
  *   post:
  *     summary: Create a new device
@@ -206,21 +102,9 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  * @swagger
  * /devices:
  *   get:
- *     summary: Get all devices with pagination
+ *     summary: Get all devices
  *     tags: [Devices]
  *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 50
- *         description: Number of devices to return
- *       - in: query
- *         name: offset
- *         schema:
- *           type: integer
- *           default: 0
- *         description: Number of devices to skip
  *       - in: query
  *         name: platform
  *         schema:
@@ -248,61 +132,49 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *                 success:
  *                   type: boolean
  *                 data:
- *                   type: object
- *                   properties:
- *                     devices:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                             example: 1
-  *                           deviceToken:
- *                             type: string
- *                             example: fcm_token_here
- *                           deviceId:
- *                             type: string
- *                             example: unique_device_uuid
- *                             nullable: true
- *                           platform:
- *                             type: string
- *                             enum: [ios, android, web]
- *                             example: android
- *                           appVersion:
- *                             type: string
- *                             example: 1.0.0
- *                             nullable: true
- *                           osVersion:
- *                             type: string
- *                             example: 13.0
- *                             nullable: true
- *                           deviceModel:
- *                             type: string
- *                             example: Samsung Galaxy S21
- *                             nullable: true
- *                           isActive:
- *                             type: boolean
- *                             example: true
- *                           lastActiveAt:
- *                             type: string
- *                             format: date-time
- *                             nullable: true
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
-  *                     total:
- *                       type: integer
- *                       example: 100
- *                     limit:
- *                       type: integer
- *                       example: 50
- *                     offset:
- *                       type: integer
- *                       example: 0
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       deviceToken:
+ *                         type: string
+ *                         example: fcm_token_here
+ *                       deviceId:
+ *                         type: string
+ *                         example: unique_device_uuid
+ *                         nullable: true
+ *                       platform:
+ *                         type: string
+ *                         enum: [ios, android, web]
+ *                         example: android
+ *                       appVersion:
+ *                         type: string
+ *                         example: 1.0.0
+ *                         nullable: true
+ *                       osVersion:
+ *                         type: string
+ *                         example: 13.0
+ *                         nullable: true
+ *                       deviceModel:
+ *                         type: string
+ *                         example: Samsung Galaxy S21
+ *                         nullable: true
+ *                       isActive:
+ *                         type: boolean
+ *                         example: true
+ *                       lastActiveAt:
+ *                         type: string
+ *                         format: date-time
+ *                         nullable: true
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
  */
 router.get('/devices', deviceController.getAllDevices.bind(deviceController));
 

@@ -2,46 +2,6 @@ const deviceService = require('../services/deviceService');
 
 class DeviceController {
   /**
-   * Register a device
-   * POST /devices/register
-   */
-  async registerDevice(req, res) {
-    try {
-      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = req.body;
-
-      // Validate required fields
-      if (!deviceToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'deviceToken is required'
-        });
-      }
-
-      const device = await deviceService.registerDevice({
-        deviceToken,
-        deviceId,
-        platform,
-        appVersion,
-        osVersion,
-        deviceModel
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Device registered successfully',
-        data: device
-      });
-    } catch (error) {
-      console.error('Error in registerDevice controller:', error);
-      const statusCode = error.message.includes('not found') ? 404 : 400;
-      return res.status(statusCode).json({
-        success: false,
-        error: error.message || 'Failed to register device'
-      });
-    }
-  }
-
-  /**
    * Create a new device
    * POST /devices
    */
@@ -88,11 +48,9 @@ class DeviceController {
    */
   async getAllDevices(req, res) {
     try {
-      const { limit, offset, platform, isActive, search } = req.query;
+      const { platform, isActive, search } = req.query;
 
       const result = await deviceService.getAllDevices({
-        limit,
-        offset,
         platform,
         isActive,
         search

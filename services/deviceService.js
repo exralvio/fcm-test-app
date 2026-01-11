@@ -78,13 +78,13 @@ class DeviceService {
   }
 
   /**
-   * Get all devices with pagination
+   * Get all devices
    * @param {Object} options - Query options
-   * @returns {Promise<Object>} Devices list with pagination
+   * @returns {Promise<Array>} Devices list
    */
   async getAllDevices(options = {}) {
     try {
-      const { limit = 50, offset = 0, platform, isActive, search } = options;
+      const { platform, isActive, search } = options;
 
       const where = {};
       if (platform) {
@@ -103,19 +103,12 @@ class DeviceService {
         ];
       }
 
-      const { count, rows } = await Device.findAndCountAll({
+      const devices = await Device.findAll({
         where,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
         order: [['createdAt', 'DESC']]
       });
 
-      return {
-        devices: rows,
-        total: count,
-        limit: parseInt(limit),
-        offset: parseInt(offset)
-      };
+      return devices;
     } catch (error) {
       console.error('Error getting all devices:', error);
       throw error;
