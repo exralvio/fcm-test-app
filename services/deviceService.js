@@ -1,27 +1,20 @@
-const { Device, User } = require('../models');
+const { Device } = require('../models');
 
 class DeviceService {
   /**
-   * Register a device for a user
+   * Register a device
    * @param {Object} deviceData - Device data
    * @returns {Promise<Object>} Created or updated device
    */
   async registerDevice(deviceData) {
     try {
-      const { userId, deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = deviceData;
-
-      // Validate user exists
-      const user = await User.findByPk(userId);
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = deviceData;
 
       // Check if device with this token already exists
       let device = await Device.findOne({ where: { deviceToken } });
 
       if (device) {
         // Update existing device
-        device.userId = userId;
         if (deviceId !== undefined) device.deviceId = deviceId;
         if (platform !== undefined) device.platform = platform;
         if (appVersion !== undefined) device.appVersion = appVersion;
@@ -34,7 +27,6 @@ class DeviceService {
       } else {
         // Create new device
         device = await Device.create({
-          userId,
           deviceToken,
           deviceId,
           platform: platform || 'android',
@@ -59,13 +51,7 @@ class DeviceService {
    */
   async createDevice(deviceData) {
     try {
-      const { userId, deviceToken, deviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
-
-      // Validate user exists
-      const user = await User.findByPk(userId);
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
 
       // Check if device token already exists
       const existingDevice = await Device.findOne({ where: { deviceToken } });
@@ -74,7 +60,6 @@ class DeviceService {
       }
 
       const device = await Device.create({
-        userId,
         deviceToken,
         deviceId,
         platform: platform || 'android',
@@ -99,12 +84,9 @@ class DeviceService {
    */
   async getAllDevices(options = {}) {
     try {
-      const { limit = 50, offset = 0, userId, platform, isActive, search } = options;
+      const { limit = 50, offset = 0, platform, isActive, search } = options;
 
       const where = {};
-      if (userId) {
-        where.userId = userId;
-      }
       if (platform) {
         where.platform = platform;
       }
@@ -125,14 +107,7 @@ class DeviceService {
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']],
-        include: [
-          {
-            model: User,
-            as: 'user',
-            attributes: ['id', 'name', 'email']
-          }
-        ]
+        order: [['createdAt', 'DESC']]
       });
 
       return {
@@ -154,15 +129,7 @@ class DeviceService {
    */
   async getDeviceById(deviceId) {
     try {
-      const device = await Device.findByPk(deviceId, {
-        include: [
-          {
-            model: User,
-            as: 'user',
-            attributes: ['id', 'name', 'email']
-          }
-        ]
-      });
+      const device = await Device.findByPk(deviceId);
 
       if (!device) {
         throw new Error(`Device with ID ${deviceId} not found`);
@@ -188,15 +155,7 @@ class DeviceService {
         throw new Error(`Device with ID ${deviceId} not found`);
       }
 
-      const { userId, deviceToken, deviceId: newDeviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
-
-      // Validate user if being changed
-      if (userId && userId !== device.userId) {
-        const user = await User.findByPk(userId);
-        if (!user) {
-          throw new Error(`User with ID ${userId} not found`);
-        }
-      }
+      const { deviceToken, deviceId: newDeviceId, platform, appVersion, osVersion, deviceModel, isActive } = deviceData;
 
       // Check if device token is being changed and already exists
       if (deviceToken && deviceToken !== device.deviceToken) {
@@ -207,7 +166,6 @@ class DeviceService {
       }
 
       // Update fields
-      if (userId !== undefined) device.userId = userId;
       if (deviceToken !== undefined) device.deviceToken = deviceToken;
       if (newDeviceId !== undefined) device.deviceId = newDeviceId;
       if (platform !== undefined) device.platform = platform;
@@ -248,29 +206,6 @@ class DeviceService {
     }
   }
 
-  /**
-   * Get devices by user ID
-   * @param {number} userId - User ID
-   * @returns {Promise<Array>} Array of devices
-   */
-  async getDevicesByUserId(userId) {
-    try {
-      const user = await User.findByPk(userId);
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
-
-      const devices = await Device.findAll({
-        where: { userId },
-        order: [['lastActiveAt', 'DESC'], ['createdAt', 'DESC']]
-      });
-
-      return devices;
-    } catch (error) {
-      console.error('Error getting devices by user ID:', error);
-      throw error;
-    }
-  }
 }
 
 module.exports = new DeviceService();

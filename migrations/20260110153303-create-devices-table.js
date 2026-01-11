@@ -10,17 +10,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Users',
-          key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-        comment: 'User who owns this device'
-      },
       deviceToken: {
         type: Sequelize.STRING(500),
         allowNull: false,
@@ -77,9 +66,6 @@ module.exports = {
     });
 
     // Add indexes
-    await queryInterface.addIndex('devices', ['userId'], {
-      name: 'idx_devices_user_id'
-    });
     await queryInterface.addIndex('devices', ['deviceToken'], {
       name: 'idx_devices_token',
       unique: true

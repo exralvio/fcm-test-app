@@ -16,11 +16,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 // Routes
-const userRoutes = require('./routes/userRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
-app.use('/', userRoutes);
 app.use('/', deviceRoutes);
 app.use('/', notificationRoutes);
 

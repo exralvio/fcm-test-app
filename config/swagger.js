@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'Imbee Test App API',
       version: '1.0.0',
-      description: 'API documentation for Imbee Test App - FCM Notification System with Users and Devices management',
+      description: 'API documentation for Imbee Test App - FCM Notification System with Devices management',
       contact: {
         name: 'API Support',
         email: 'support@example.com'
@@ -24,28 +24,10 @@ const options = {
     ],
     tags: [
       {
-        name: 'Users',
-        description: 'User management endpoints'
-      },
-      {
         name: 'Devices',
         description: 'Device management endpoints'
-      },
-      {
-        name: 'Auth',
-        description: 'Authentication endpoints'
       }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          description: 'JWT token obtained from /auth/login endpoint'
-        }
-      }
-    }
+    ]
   },
   apis: [
     './routes/*.js',

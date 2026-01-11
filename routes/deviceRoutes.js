@@ -1,16 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const deviceController = require('../controllers/deviceController');
-const authenticate = require('../middleware/auth');
 
 /**
  * @swagger
  * /devices/register:
  *   post:
- *     summary: Register a device for a user (updates if token exists)
+ *     summary: Register a device (updates if token exists)
  *     tags: [Devices]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -55,9 +52,6 @@ const authenticate = require('../middleware/auth');
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: integer
- *                       example: 1
- *                     userId:
  *                       type: integer
  *                       example: 1
  *                     deviceToken:
@@ -109,34 +103,8 @@ const authenticate = require('../middleware/auth');
  *                 error:
  *                   type: string
  *                   example: Validation error message
- *       401:
- *         description: Authentication error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: Authentication token is required
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: User with ID 1 not found
  */
-router.post('/devices/register', authenticate, deviceController.registerDevice.bind(deviceController));
+router.post('/devices/register', deviceController.registerDevice.bind(deviceController));
 
 /**
  * @swagger
@@ -151,12 +119,8 @@ router.post('/devices/register', authenticate, deviceController.registerDevice.b
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - deviceToken
  *             properties:
- *               userId:
- *                 type: integer
- *                 example: 1
  *               deviceToken:
  *                 type: string
  *                 example: fcm_token_here
@@ -197,8 +161,6 @@ router.post('/devices/register', authenticate, deviceController.registerDevice.b
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: integer
- *                     userId:
  *                       type: integer
  *                     deviceToken:
  *                       type: string
@@ -260,11 +222,6 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *           default: 0
  *         description: Number of devices to skip
  *       - in: query
- *         name: userId
- *         schema:
- *           type: integer
- *         description: Filter by user ID
- *       - in: query
  *         name: platform
  *         schema:
  *           type: string
@@ -301,10 +258,7 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *                           id:
  *                             type: integer
  *                             example: 1
- *                           userId:
- *                             type: integer
- *                             example: 1
- *                           deviceToken:
+  *                           deviceToken:
  *                             type: string
  *                             example: fcm_token_here
  *                           deviceId:
@@ -340,16 +294,7 @@ router.post('/devices', deviceController.createDevice.bind(deviceController));
  *                           updatedAt:
  *                             type: string
  *                             format: date-time
- *                           user:
- *                             type: object
- *                             properties:
- *                               id:
- *                                 type: integer
- *                               name:
- *                                 type: string
- *                               email:
- *                                 type: string
- *                     total:
+  *                     total:
  *                       type: integer
  *                       example: 100
  *                     limit:
@@ -391,9 +336,6 @@ router.get('/devices', deviceController.getAllDevices.bind(deviceController));
  *                     id:
  *                       type: integer
  *                       example: 1
- *                     userId:
- *                       type: integer
- *                       example: 1
  *                     deviceToken:
  *                       type: string
  *                       example: fcm_token_here
@@ -430,16 +372,7 @@ router.get('/devices', deviceController.getAllDevices.bind(deviceController));
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
- *                     user:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                         name:
- *                           type: string
- *                         email:
- *                           type: string
- *       404:
+  *       404:
  *         description: Device not found
  *         content:
  *           application/json:
@@ -475,8 +408,6 @@ router.get('/devices/:id', deviceController.getDeviceById.bind(deviceController)
  *           schema:
  *             type: object
  *             properties:
- *               userId:
- *                 type: integer
  *               deviceToken:
  *                 type: string
  *               deviceId:
@@ -510,8 +441,6 @@ router.get('/devices/:id', deviceController.getDeviceById.bind(deviceController)
  *                   type: object
  *                   properties:
  *                     id:
- *                       type: integer
- *                     userId:
  *                       type: integer
  *                     deviceToken:
  *                       type: string
@@ -613,97 +542,6 @@ router.put('/devices/:id', deviceController.updateDevice.bind(deviceController))
  */
 router.delete('/devices/:id', deviceController.deleteDevice.bind(deviceController));
 
-/**
- * @swagger
- * /devices/user/{userId}:
- *   get:
- *     summary: Get all devices by user ID
- *     tags: [Devices]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         description: User ID
- *     responses:
- *       200:
- *         description: List of devices for the user
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     devices:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                             example: 1
- *                           userId:
- *                             type: integer
- *                             example: 1
- *                           deviceToken:
- *                             type: string
- *                             example: fcm_token_here
- *                           deviceId:
- *                             type: string
- *                             example: unique_device_uuid
- *                             nullable: true
- *                           platform:
- *                             type: string
- *                             enum: [ios, android, web]
- *                             example: android
- *                           appVersion:
- *                             type: string
- *                             example: 1.0.0
- *                             nullable: true
- *                           osVersion:
- *                             type: string
- *                             example: 13.0
- *                             nullable: true
- *                           deviceModel:
- *                             type: string
- *                             example: Samsung Galaxy S21
- *                             nullable: true
- *                           isActive:
- *                             type: boolean
- *                             example: true
- *                           lastActiveAt:
- *                             type: string
- *                             format: date-time
- *                             nullable: true
- *                           createdAt:
- *                             type: string
- *                             format: date-time
- *                           updatedAt:
- *                             type: string
- *                             format: date-time
- *                     total:
- *                       type: integer
- *                       example: 5
- *       404:
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: User with ID 1 not found
- */
-router.get('/devices/user/:userId', deviceController.getDevicesByUserId.bind(deviceController));
 
 module.exports = router;
 

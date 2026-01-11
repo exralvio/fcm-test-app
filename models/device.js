@@ -5,10 +5,6 @@ module.exports = (sequelize, DataTypes) => {
   class Device extends Model {
     static associate(models) {
       // Define associations here
-      Device.belongsTo(models.User, {
-        foreignKey: 'userId',
-        as: 'user'
-      });
     }
   }
   
@@ -17,15 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      comment: 'User who owns this device'
     },
     deviceToken: {
       type: DataTypes.STRING(500),
@@ -86,7 +73,6 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Device',
     tableName: 'devices',
     indexes: [
-      { fields: ['userId'] },
       { fields: ['deviceToken'], unique: true },
       { fields: ['isActive'] },
       { fields: ['platform'] }
