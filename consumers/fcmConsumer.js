@@ -1,5 +1,6 @@
 const rabbitmq = require('../config/rabbitmq');
 const fcmService = require('../services/fcmService');
+const fcmJobService = require('../services/fcmJobService');
 
 class FcmConsumer {
   constructor() {
@@ -60,11 +61,25 @@ class FcmConsumer {
       // Send notification via FCM service
       const result = await fcmService.sendNotification(notificationData);
 
-      console.log('FCM notification sent successfully:', {
-        deviceToken: message.deviceToken,
-        deviceId: message.deviceId,
-        messageId: result.messageId
-      });
+
+      // Insert FCM job record after successful delivery
+      if (message.deviceId && result.messageId) {
+        try {
+          await fcmJobService.createFcmJob({
+            deviceId: message.deviceId,
+            identifier: message.identifier || null,
+            messageId: result.messageId,
+            deliverAt: new Date()
+          });
+          console.log('FCM job record created successfully:', {
+            deviceId: message.deviceId,
+            messageId: result.messageId
+          });
+        } catch (error) {
+          // Log but don't fail the notification send
+          console.error('Error creating FCM job record:', error);
+        }
+      }
 
       return result;
     } catch (error) {
