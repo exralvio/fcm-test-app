@@ -38,8 +38,22 @@ const options = {
       {
         name: 'Health',
         description: 'Health check endpoints'
+      },
+      {
+        name: 'Auth',
+        description: 'Authentication endpoints'
       }
-    ]
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'JWT token obtained from /auth/login endpoint'
+        }
+      }
+    }
   },
   apis: [
     './routes/*.js',

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const deviceController = require('../controllers/deviceController');
+const authenticate = require('../middleware/auth');
 
 /**
  * @swagger
@@ -8,6 +9,8 @@ const deviceController = require('../controllers/deviceController');
  *   post:
  *     summary: Register a device for a user (updates if token exists)
  *     tags: [Devices]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -15,12 +18,8 @@ const deviceController = require('../controllers/deviceController');
  *           schema:
  *             type: object
  *             required:
- *               - userId
  *               - deviceToken
  *             properties:
- *               userId:
- *                 type: integer
- *                 example: 1
  *               deviceToken:
  *                 type: string
  *                 example: fcm_token_here
@@ -110,6 +109,19 @@ const deviceController = require('../controllers/deviceController');
  *                 error:
  *                   type: string
  *                   example: Validation error message
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Authentication token is required
  *       404:
  *         description: User not found
  *         content:
@@ -124,7 +136,7 @@ const deviceController = require('../controllers/deviceController');
  *                   type: string
  *                   example: User with ID 1 not found
  */
-router.post('/devices/register', deviceController.registerDevice.bind(deviceController));
+router.post('/devices/register', authenticate, deviceController.registerDevice.bind(deviceController));
 
 /**
  * @swagger

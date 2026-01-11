@@ -7,13 +7,15 @@ class DeviceController {
    */
   async registerDevice(req, res) {
     try {
-      const { userId, deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = req.body;
+      // Get userId from authenticated user (set by auth middleware)
+      const userId = req.user.id;
+      const { deviceToken, deviceId, platform, appVersion, osVersion, deviceModel } = req.body;
 
       // Validate required fields
-      if (!userId || !deviceToken) {
+      if (!deviceToken) {
         return res.status(400).json({
           success: false,
-          error: 'UserId and deviceToken are required'
+          error: 'deviceToken is required'
         });
       }
 
