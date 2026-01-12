@@ -1,10 +1,49 @@
 # Imbee Test App
 
-A Node.js Express application for managing devices and sending Firebase Cloud Messaging (FCM) notifications using RabbitMQ for asynchronous message processing.
+A ready-to-use FCM push notification test application that includes a static web app to generate FCM tokens, device registration endpoints, and notification triggering endpoints accessible via Swagger documentation.
 
 ## Overview
 
-This application provides a RESTful API for device management and notification distribution. It uses RabbitMQ for message queuing to handle notification delivery asynchronously, ensuring scalability and reliability.
+This is a production-ready Node.js Express application for testing Firebase Cloud Messaging (FCM) push notifications. The application includes:
+
+- **Static Web App**: A built-in web interface at `http://localhost:3000` that generates FCM registration tokens for testing
+- **Device Registration API**: RESTful endpoints to register and manage devices with their FCM tokens
+- **Notification API**: Endpoints to trigger push notifications to registered devices
+- **Swagger Documentation**: Interactive API documentation at `http://localhost:3000/api-docs` for easy testing and exploration
+- **Asynchronous Processing**: Uses RabbitMQ for reliable, scalable notification delivery
+- **Database Tracking**: MySQL database for device and notification job management
+
+**Note**: This zip file includes the Firebase JSON service account file and real Firebase credentials (owned by the author) that are pre-configured for testing purposes. You can use these credentials directly to test the FCM push notification functionality without setting up your own Firebase project.
+
+## Quick Test Flow
+
+Follow these steps to quickly test the FCM push notification functionality:
+
+1. **Run the Docker Compose:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Open the FCM Token Generator:**
+   - Navigate to `http://localhost:3000` in your browser
+   - The static web app will generate an FCM token automatically
+   - Copy the generated device token and device information
+
+3. **Open Swagger Documentation:**
+   - Navigate to `http://localhost:3000/api-docs`
+   - This provides an interactive interface to test all API endpoints
+
+4. **Register a Device:**
+   - Use the Swagger UI to access the `POST /devices` endpoint
+   - Paste the generated device token and device information from step 2
+   - Submit the request to register your device
+
+5. **Trigger a Notification:**
+   - Use the Swagger UI to access the `POST /send-notifications` endpoint
+   - Fill in the notification details (title, body, and optional data)
+   - Execute the request to send a push notification to all registered devices
+
+Your registered device should receive the push notification!
 
 ## Technology Stack
 
@@ -72,65 +111,6 @@ imbee-test/
 ```
 
 ## Application Flow
-
-### 1. Device Management Flow
-
-```
-Client Request
-    ↓
-Routes (deviceRoutes.js)
-    ↓
-Controller (deviceController.js)
-    ↓
-Service (deviceService.js)
-    ↓
-Model (Device)
-    ↓
-MySQL Database
-```
-
-### 2. Notification Flow
-
-#### 2.1 Send Notification Request
-
-```
-POST /notifications/all
-    ↓
-notificationController.sendToAllDevices()
-    ↓
-notificationService.sendToAllDevices()
-    ↓
-Get all devices from database
-    ↓
-For each device:
-    - Generate unique identifier
-    - Publish message to RabbitMQ queue ('notification.fcm')
-    ↓
-Return response to client
-```
-
-#### 2.2 Message Processing Flow
-
-```
-RabbitMQ Queue ('notification.fcm')
-    ↓
-FCM Consumer (fcmConsumer.js)
-    ↓
-Handle FCM Message:
-    1. Validate message structure
-    2. Prepare notification data
-    3. Send notification via FCM Service
-    4. Create FCM Job record in database
-    5. Update device lastActiveAt timestamp
-    6. Publish to 'notification.done' topic
-    ↓
-Firebase Cloud Messaging
-    ↓
-Device receives notification
-```
-
-#### 2.3 Detailed Notification Processing
-
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ 1. API Request (POST /notifications/all)                │
@@ -252,6 +232,10 @@ npm install
 Create a `.env` file in the root directory:
 
 ```env
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
 # MySQL Configuration
 MYSQL_HOST=localhost
 MYSQL_USER=root
@@ -269,9 +253,16 @@ FIREBASE_CREDENTIAL_PATH=./config/firebase-json/***REMOVED***-b46961602f80.json
 FIREBASE_PROJECT_ID=your_project_id
 FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
 
-# Server Configuration
-PORT=3000
-NODE_ENV=development
+# Firebase Web Configuration (for static app to generate FCM token)
+FIREBASE_WEB_API_KEY=your_web_api_key
+FIREBASE_WEB_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_WEB_DATABASE_URL=https://your-project.firebaseio.com
+FIREBASE_WEB_PROJECT_ID=your_project_id
+FIREBASE_WEB_STORAGE_BUCKET=your-project.appspot.com
+FIREBASE_WEB_MESSAGING_SENDER_ID=your_messaging_sender_id
+FIREBASE_WEB_APP_ID=your_web_app_id
+FIREBASE_WEB_MEASUREMENT_ID=your_measurement_id
+FIREBASE_WEB_VAPID_KEY=your_vapid_key
 ```
 
 3. **Set up Firebase:**
@@ -320,16 +311,7 @@ sudo systemctl start rabbitmq-server
 
    Ensure your Firebase service account JSON file is in `config/firebase-json/` directory. The default filename expected is `***REMOVED***-b46961602f80.json`, or update the path in `docker-compose.yml`.
 
-2. **Set Firebase environment variables (optional):**
-
-   Create a `.env` file in the root directory (or export environment variables):
-   
-   ```env
-   FIREBASE_PROJECT_ID=your_project_id
-   FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
-   ```
-
-3. **Start all services with one command:**
+2. **Start all services with one command:**
 
    ```bash
    docker-compose up -d
@@ -343,7 +325,7 @@ sudo systemctl start rabbitmq-server
    - Start Consumer service
    - **Automatically run database migrations** before starting the services
 
-4. **View logs:**
+3. **View logs:**
 
    ```bash
    # View all logs
@@ -356,7 +338,7 @@ sudo systemctl start rabbitmq-server
    docker-compose logs -f rabbitmq
    ```
 
-5. **Access the services:**
+4. **Access the services:**
 
    - **API Server**: http://localhost:3000
    - **Swagger Documentation**: http://localhost:3000/api-docs
@@ -421,18 +403,37 @@ The Docker setup includes:
 The Docker Compose file uses the following default values (can be overridden with `.env` file):
 
 ```env
+# Server Configuration
+NODE_ENV=production
+PORT=3000
+
 # MySQL (internal to Docker network)
 MYSQL_HOST=mysql
 MYSQL_USER=imbee_user
 MYSQL_PASSWORD=imbee_password
 MYSQL_DATABASE=imbee_test
+MYSQL_PORT=3306
 
 # RabbitMQ (internal to Docker network)
 RABBITMQ_URL=amqp://imbee_user:imbee_password@rabbitmq:5672
+RABBITMQ_EXCHANGE=imbee_exchange
+RABBITMQ_QUEUE=imbee_queue
 
-# Firebase (from your local .env file or environment)
+# Firebase Configuration (from your local .env file or environment)
+FIREBASE_CREDENTIAL_PATH=./config/firebase-json/***REMOVED***-b46961602f80.json
 FIREBASE_PROJECT_ID=your_project_id
 FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
+
+# Firebase Web Configuration (for static app to generate FCM token)
+FIREBASE_WEB_API_KEY=your_web_api_key
+FIREBASE_WEB_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_WEB_DATABASE_URL=https://your-project.firebaseio.com
+FIREBASE_WEB_PROJECT_ID=your_project_id
+FIREBASE_WEB_STORAGE_BUCKET=your-project.appspot.com
+FIREBASE_WEB_MESSAGING_SENDER_ID=your_messaging_sender_id
+FIREBASE_WEB_APP_ID=your_web_app_id
+FIREBASE_WEB_MEASUREMENT_ID=your_measurement_id
+FIREBASE_WEB_VAPID_KEY=your_vapid_key
 ```
 
 ### Data Persistence
