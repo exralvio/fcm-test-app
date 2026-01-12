@@ -113,19 +113,30 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
-    const firebaseConfig = {
-      apiKey: "***REMOVED***",
-      authDomain: "***REMOVED***.firebaseapp.com",
-      databaseURL: "https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "***REMOVED***",
-      storageBucket: "***REMOVED***.firebasestorage.app",
-      messagingSenderId: "***REMOVED***",
-      appId: "1:***REMOVED***:web:2c962ffe8b245041e5594f",
-      measurementId: "***REMOVED***"
-    };
+    let app = null;
+    let messaging = null;
+    let vapidKey = null;
 
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
+    // Fetch Firebase config from API
+    async function initializeFirebase() {
+      try {
+        const response = await fetch('/api/firebase-config');
+        if (!response.ok) {
+          throw new Error('Failed to fetch Firebase config');
+        }
+        const { firebaseConfig, vapidKey: fetchedVapidKey } = await response.json();
+        
+        app = initializeApp(firebaseConfig);
+        messaging = getMessaging(app);
+        vapidKey = fetchedVapidKey;
+        
+        return true;
+      } catch (error) {
+        console.error('Error initializing Firebase:', error);
+        showError('Failed to initialize Firebase: ' + error.message);
+        return false;
+      }
+    }
 
     // Generate or retrieve device ID (stored in localStorage for consistency)
     function getOrCreateDeviceId() {
@@ -214,6 +225,14 @@
       document.getElementById('tokenSection').style.display = 'none';
       
       try {
+        // Initialize Firebase if not already initialized
+        if (!app || !messaging || !vapidKey) {
+          const initialized = await initializeFirebase();
+          if (!initialized) {
+            return;
+          }
+        }
+
         const permission = await Notification.requestPermission();
         if (permission !== "granted") {
           showError("Notifications blocked. Please enable notifications to generate a token.");
@@ -226,7 +245,7 @@
         }
 
         const token = await getToken(messaging, {
-          vapidKey: "***REMOVED***"
+          vapidKey: vapidKey
         });
 
         if (token) {

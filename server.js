@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const config = require('./config/config');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -18,6 +19,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: 'Imbee Test App API Documentation'
 }));
+
+// Firebase Web Config API endpoint
+app.get('/api/firebase-config', (req, res) => {
+  console.log(config);
+  res.json({
+    firebaseConfig: config.firebase.web,
+    vapidKey: config.firebase.vapidKey
+  });
+});
 
 // Routes
 const deviceRoutes = require('./routes/deviceRoutes');
