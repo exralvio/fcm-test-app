@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FCM Web Token Test</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      position: relative;
+    }
+    .token-container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .token-input-group {
+      position: relative;
+    }
+    .token-display {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      resize: none;
+    }
+    .copy-btn {
+      transition: all 0.3s ease;
+    }
+    .copy-btn:hover {
+      transform: scale(1.05);
+    }
+    .copy-btn.copied {
+      background-color: #198754 !important;
+      border-color: #198754 !important;
+    }
+    .credit {
+      position: absolute;
+      bottom: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-7">
+        <div class="token-container p-4 p-md-5">
+          <div class="text-center mb-4">
+            <h1 class="display-5 fw-bold text-primary mb-3">
+              <i class="bi bi-fire"></i> FCM Web Token Test
+            </h1>
+            <p class="text-muted">Generate and copy your Firebase Cloud Messaging token</p>
+          </div>
+
+          <div class="mb-4">
+            <button class="btn btn-primary btn-lg w-100" onclick="getFcmToken()">
+              <i class="bi bi-key"></i> Get FCM Token
+            </button>
+          </div>
+
+          <div id="tokenSection" style="display: none;">
+            <label for="tokenInput" class="form-label fw-semibold">Your Device Data (Paste this JSON to add device endpoint):</label>
+            <div class="input-group token-input-group mb-3">
+              <textarea 
+                class="form-control token-display" 
+                id="tokenInput" 
+                readonly
+                rows="8"
+                placeholder="Device information JSON will appear here..."
+              ></textarea>
+              <button 
+                class="btn btn-outline-secondary copy-btn" 
+                type="button" 
+                id="copyBtn"
+                onclick="copyToClipboard()"
+                title="Copy to clipboard"
+              >
+                <i class="bi bi-clipboard" id="copyIcon"></i>
+              </button>
+            </div>
+            <div id="copyMessage" class="alert alert-success d-none" role="alert">
+              <i class="bi bi-check-circle"></i> Token copied to clipboard!
+            </div>
+          </div>
+
+          <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span id="errorMessage"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="credit">
+    Imbee Test by Alvio Leegia
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+
+    const firebaseConfig = {
+      apiKey: "***REMOVED***",
+      authDomain: "***REMOVED***.firebaseapp.com",
+      databaseURL: "https://***REMOVED***-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "***REMOVED***",
+      storageBucket: "***REMOVED***.firebasestorage.app",
+      messagingSenderId: "***REMOVED***",
+      appId: "1:***REMOVED***:web:2c962ffe8b245041e5594f",
+      measurementId: "***REMOVED***"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    // Generate or retrieve device ID (stored in localStorage for consistency)
+    function getOrCreateDeviceId() {
+      let deviceId = localStorage.getItem('fcm_device_id');
+      if (!deviceId) {
+        // Generate UUID v4
+        deviceId = crypto.randomUUID ? crypto.randomUUID() : generateUUID();
+        localStorage.setItem('fcm_device_id', deviceId);
+      }
+      return deviceId;
+    }
+
+    // Fallback UUID generator for browsers without crypto.randomUUID
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // Get browser/device information
+    function getBrowserInfo() {
+      const ua = navigator.userAgent;
+      let deviceModel = 'Unknown';
+      let osVersion = 'Unknown';
+
+      // Detect OS and version
+      if (ua.indexOf('Windows NT') > -1) {
+        const match = ua.match(/Windows NT (\d+\.\d+)/);
+        osVersion = match ? match[1] : '10';
+        deviceModel = 'Windows Desktop';
+      } else if (ua.indexOf('Mac OS X') > -1) {
+        const match = ua.match(/Mac OS X (\d+[._]\d+)/);
+        osVersion = match ? match[1].replace('_', '.') : '13';
+        deviceModel = 'Mac Desktop';
+      } else if (ua.indexOf('Linux') > -1) {
+        osVersion = 'Linux';
+        deviceModel = 'Linux Desktop';
+      } else if (ua.indexOf('Android') > -1) {
+        const match = ua.match(/Android (\d+\.\d+)/);
+        osVersion = match ? match[1] : '13';
+        const matchModel = ua.match(/\(([^)]+)\)/);
+        deviceModel = matchModel ? matchModel[1] : 'Android Device';
+      } else if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) {
+        const match = ua.match(/OS (\d+[._]\d+)/);
+        osVersion = match ? match[1].replace('_', '.') : '17';
+        deviceModel = ua.indexOf('iPad') > -1 ? 'iPad' : 'iPhone';
+      } else {
+        deviceModel = navigator.userAgentData?.platform || 'Web Browser';
+      }
+
+      // Get browser name
+      if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1) {
+        deviceModel += ' (Chrome)';
+      } else if (ua.indexOf('Firefox') > -1) {
+        deviceModel += ' (Firefox)';
+      } else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+        deviceModel += ' (Safari)';
+      } else if (ua.indexOf('Edg') > -1) {
+        deviceModel += ' (Edge)';
+      }
+
+      return { deviceModel, osVersion };
+    }
+
+    // Build device data object
+    function buildDeviceData(fcmToken) {
+      const deviceId = getOrCreateDeviceId();
+      const { deviceModel, osVersion } = getBrowserInfo();
+
+      return {
+        deviceToken: fcmToken,
+        deviceId: deviceId,
+        platform: "web",
+        appVersion: "1.0.0",
+        osVersion: osVersion,
+        deviceModel: deviceModel
+      };
+    }
+
+    window.getFcmToken = async function () {
+      // Hide previous messages
+      document.getElementById('errorAlert').classList.add('d-none');
+      document.getElementById('copyMessage').classList.add('d-none');
+      document.getElementById('tokenSection').style.display = 'none';
+      
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          showError("Notifications blocked. Please enable notifications to generate a token.");
+          return;
+        }
+
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          console.log("Service Worker registered", registration);
+        }
+
+        const token = await getToken(messaging, {
+          vapidKey: "***REMOVED***"
+        });
+
+        if (token) {
+          // Build device data object
+          const deviceData = buildDeviceData(token);
+          const jsonString = JSON.stringify(deviceData, null, 2);
+          
+          // Display JSON in the input field
+          document.getElementById('tokenInput').value = jsonString;
+          document.getElementById('tokenSection').style.display = 'block';
+          console.log("WEB FCM TOKEN:", token);
+          console.log("Device Data:", deviceData);
+          // Scroll to token section
+          document.getElementById('tokenSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          showError("No token available. Make sure notifications are enabled and service worker is registered.");
+        }
+      } catch (error) {
+        console.error("Error getting token:", error);
+        showError("Failed to get token: " + error.message);
+      }
+    };
+
+    window.copyToClipboard = async function () {
+      const tokenInput = document.getElementById('tokenInput');
+      const copyBtn = document.getElementById('copyBtn');
+      const copyIcon = document.getElementById('copyIcon');
+      const copyMessage = document.getElementById('copyMessage');
+
+      try {
+        // Copy the JSON string that's already displayed in the input
+        const jsonString = tokenInput.value;
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(jsonString);
+        
+        // Update button appearance
+        copyBtn.classList.add('copied');
+        copyIcon.className = 'bi bi-check-lg';
+        
+        // Show success message
+        copyMessage.classList.remove('d-none');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyIcon.className = 'bi bi-clipboard';
+          copyMessage.classList.add('d-none');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        // Fallback for older browsers
+        const jsonString = tokenInput.value;
+        
+        // Create temporary textarea for fallback copy
+        const textarea = document.createElement('textarea');
+        textarea.value = jsonString;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        copyMessage.classList.remove('d-none');
+        setTimeout(() => {
+          copyMessage.classList.add('d-none');
+        }, 2000);
+      }
+    };
+
+    function showError(message) {
+      const errorAlert = document.getElementById('errorAlert');
+      const errorMessage = document.getElementById('errorMessage');
+      errorMessage.textContent = message;
+      errorAlert.classList.remove('d-none');
+    }
+  </script>
+</body>
+</html>
+
